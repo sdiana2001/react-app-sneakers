@@ -3,7 +3,7 @@ import cart from "../../public/icons/cart.svg";
 import favorite from "../../public/icons/favorite.svg";
 import profile from "../../public/icons/profile.svg";
 
-function Header() {
+function Header(props) {
   return (
     <header className="d-flex justify-between align-center p-40">
       <div className="d-flex align-center">
@@ -14,16 +14,16 @@ function Header() {
         </div>
       </div>
       <ul className="d-flex">
-        <li className="mr-30 d-flex  align-center">
-          <img width={18} height={18} src={cart} alt="" />
+        <li className="mr-30 d-flex  align-center cu-p" onClick={props.onCloseCart}>
+          <img width={20} height={20} src={cart} alt="" />
           <span>1205 руб.</span>
         </li>
-        <li className="mr-30 d-flex  align-center">
-          <img width={18} height={18} src={favorite} alt="" />
+        <li className="mr-30 d-flex  align-center cu-p">
+          <img width={20} height={20} src={favorite} alt="" />
           <span>Закладки</span>
         </li>
-        <li className="d-flex  align-center">
-          <img width={18} height={18} src={profile} alt="" />
+        <li className="d-flex  align-center cu-p">
+          <img width={20} height={20} src={profile} alt="" />
           <span>Профиль</span>
         </li>
       </ul>
