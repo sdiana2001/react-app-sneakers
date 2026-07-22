@@ -1,46 +1,61 @@
 import "./App.scss";
-import search from "../public/icons/search.svg";
-import Card from "./components/Card";
 import Header from "./components/Header";
 import Drawer from "./components/Drawer";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { Routes, Route } from "react-router-dom";
+import  Home  from "./pages/Home";
+import Favorites from "./pages/Favorites";
 
 function App() {
-  const [items, setItems] = useState([]);
-  const [cartItems, setCartItems] = useState([]);
-  const [cartOpened, setCardOpened] = useState(false);
-  const [searchValue, setSerchValue] = useState("");
+  const [items, setItems] = useState([]); // // Список всех товаров
+  const [cartItems, setCartItems] = useState([]); // Список товаров в корзине
+  const [cartOpened, setCardOpened] = useState(false); // Открыта/закрыта корзина
+  const [searchValue, setSearchValue] = useState(""); // // Текст из поля поиска
+  const [favorites, setFavorites] = useState([]); // Список товаров в Избранных
 
+  
   useEffect(() => {
     axios
       .get("https://66a904f6e40d3aa6ff5a4dc3.mockapi.io/items")
       .then((res) => {
-        setItems(res.data);
+        setItems(res.data); // получаем данные из сервера о всех товарах
       });
 
     axios
       .get("https://66a904f6e40d3aa6ff5a4dc3.mockapi.io/cart")
       .then((res) => {
-        setCartItems(res.data);
+        setCartItems(res.data); // получаем данные о всех товарах в корзине
       });
   }, []);
 
   const onAddToCart = (obj) => {
     // Проверяем, есть ли элемент с таким же title или id
     const findItem = cartItems.find((item) => item.title === obj.title);
+    // item.title - товар, который уже лежит в корзине.
+    // obj.title — товар, по которому мы кликнули.
 
+    // Если есть — удаляем и из стейта, и с сервера
     if (findItem) {
-      // Если есть — удаляем и из стейта, и с сервера
       setCartItems((prev) => prev.filter((item) => item.title !== obj.title));
       axios.delete(
         `https://66a904f6e40d3aa6ff5a4dc3.mockapi.io/cart/${findItem.id}`
       );
-    } else {
-      // Если нет — добавляем локально и отправляем на сервер
-      setCartItems((prev) => [...prev, obj]);
-      axios.post("https://66a904f6e40d3aa6ff5a4dc3.mockapi.io/cart", obj);
     }
+    // Если нет — добавляем локально и отправляем на сервер
+    else {
+      // Отправляем на сервер, и получаем с сервера созданный объект с реальным ID корзины
+      axios
+        .post("https://66a904f6e40d3aa6ff5a4dc3.mockapi.io/cart", obj)
+        .then((res) => {
+          setCartItems((prev) => [...prev, res.data]);
+        });
+    }
+  };
+
+  const onAddToFavorites = (obj) => {
+    setFavorites((prev) => [...prev, obj]);
+    axios.get("https://66a904f6e40d3aa6ff5a4dc3.mockapi.io/favorite", obj);
   };
 
   const onRemoveItem = (id) => {
@@ -49,7 +64,7 @@ function App() {
   };
 
   const onChangeSearchInput = (event) => {
-    setSerchValue(event.target.value);
+    setSearchValue(event.target.value);
   };
 
   return (
@@ -64,38 +79,22 @@ function App() {
 
       <Header onCloseCart={() => setCardOpened(true)} />
 
-      <div className="content p-40">
-        <div className="d-flex align-center justify-between">
-          <h1 className="mb-40">
-            {searchValue ? `Поиск: "${searchValue}"` : "Все кроссовки"}
-          </h1>
-          <div className="search-block d-flex">
-            <img src={search} alt="Search" />
-            <input
-              onChange={onChangeSearchInput}
-              value={searchValue}
-              type="text"
-              placeholder="Поиск..."
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Home
+              items={items}
+              searchValue={searchValue}
+              setSearchValue={setSearchValue}
+              onChangeSearchInput={onChangeSearchInput}
+              onAddToFavorites={onAddToFavorites}
+              onAddToCart={onAddToCart}
             />
-          </div>
-        </div>
-
-        <div className="d-flex flex-wrap">
-          {items
-            .filter((item) =>
-              item.title.toLowerCase().includes(searchValue.toLowerCase())
-            )
-            .map((obj) => (
-              <Card
-                key={obj.id}
-                title={obj.title}
-                price={obj.price}
-                imageUrl={obj.imageUrl}
-                onPlus={onAddToCart}
-              />
-            ))}
-        </div>
-      </div>
+          }
+        />
+        <Route path="/favorites" element={<Favorites items={favorites} />} />
+      </Routes>
     </div>
   );
 }
@@ -105,4 +104,4 @@ export default App;
 // До клика: В onPlus лежит просто пустая ссылка на функцию onAddToCart. Никаких данных о конкретных кроссовках там ещё нет.
 // В момент клика: Внутри карточки срабатывает функция handlePlusClic. 
 // Она берет свои данные (title, price и т.д.), «упаковывает» их в объект и закидывает внутрь onPlus(...).
-// После клика: Данные по «трубе» мгновенно прилетают в App.js и становятся аргументом (obj) внутри функции onAddToCart.
+// После клика: Данные по «трубе» onPlus мгновенно прилетают в App.js и становятся аргументом (obj) внутри функции onAddToCart.

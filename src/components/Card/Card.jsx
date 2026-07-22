@@ -1,18 +1,34 @@
- import { useState } from 'react';
+import { useState } from 'react';
 import styles from './Card.module.scss';
  
- function Card({ onFavorite, title, imageUrl, price, onPlus }) {
+//Компонент Card получает аргументы (пропсы) от App:
+ function Card({ onFavorite, title, imageUrl, price, onPlus, favorited=false }) {
    const [checked, setChecked] = useState(false);
+   const [isFavorite, setIsFavorite] = useState(favorited); // Список избранных товаров
 
    function handlePlusClic() {
+     // 2. Внутри handlePlusClic мы отловили товар и берем  переменные (title, imageUrl, price)
+     // и упаковываем их в фигурные скобки {}, создавая новый объект:
      onPlus({ title, imageUrl, price });
      setChecked(!checked);
    }
 
+    function handleFavClic() {
+      onFavorite({ title, imageUrl, price });
+      setIsFavorite(!isFavorite);
+    }
+
    return (
      <div className={styles.card}>
-       <div onClick={onFavorite} className={styles.favorite}>
-         <img src="/public/icons/Unliked.svg" alt="Unliked" />
+       <div onClick={handleFavClic} className={styles.favorite}>
+         <img
+           src={
+             isFavorite
+               ? "/public/icons/liked.svg"
+               : "/public/icons/UnLiked.svg"
+           }
+           alt="Unliked"
+         />
        </div>
        <img width={133} height={112} src={imageUrl} alt="Sneakers" />
        <h5>{title}</h5>
